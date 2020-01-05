@@ -3,9 +3,17 @@ boost_src_dir=$1 					# /home/user/Documents/boost_src_dir
 prefix=$2						# /home/user/Documents/boost_to_linaro
 toolchain_full_path=$3					# /gcc-linaro-5.2-2015.11-2-x86_64_aarch64-linux-gnu/bin/aarch64-linux-gnu-g++
 toolchain_name=$(basename "$toolchain_full_path")	# aarch64-linux-gnu-g++
-library_name=$4						# stacktrace, exception, mpi, etc;
+libraries=($4)						# stacktrace, exception, mpi, etc;
+libraries_raw=${libraries[@]}
+libraries_with_underscore=${libraries_raw// /_}
 error_output=$prefix/install_error
-directory_name=boost_to_"$toolchain_name"_with_"$library_name"
+directory_name=boost_to_"$toolchain_name"_with_"$libraries_with_underscore"
+
+with_libs_string=""
+for i in $libraries_raw
+do 
+	with_libs_string="$with_libs_string--with-$i "
+done
 
 # examples:
 # 1. sudo ./install.sh ~/Documents/BoostCross/boost_1_66_0/ ~/Documents/BoostCross/ ~/Documents/BoostCross/gcc-linaro-5.2-2015.11-2-x86_64_aarch64-linux-gnu/bin/aarch64-linux-gnu-g++ "stacktrace"
@@ -14,7 +22,7 @@ directory_name=boost_to_"$toolchain_name"_with_"$library_name"
 
 
 #==================================================================================
-#1. Create boost_to_$toolchain_name_with_$library_name directory
+#1. Create boost_to_$toolchain_name_with_$libraries_with_underscore directory
 #==================================================================================
 
 echo "#==================================================================================
@@ -29,7 +37,7 @@ echo "#=========================================================================
 #==================================================================================" >> $error_output
 
 #==================================================================================
-#Created boost_to_$toolchain_name_with_$library_name directory
+#Created boost_to_$toolchain_name_with_$libraries_with_underscore directory
 #==================================================================================
 
 echo "" >> $error_output
@@ -137,7 +145,9 @@ echo "#=========================================================================
 #==================================================================================" >> $error_output
 
 cd $boost_src_dir &>> $error_output
-sudo ./b2 install --user-conifig=user-config.jam  --prefix=$prefix/$directory_name --with-$library_name &>> $error_output
+
+
+sudo ./b2 install --user-conifig=user-config.jam  --prefix=$prefix/$directory_name $with_libs_string &>> $error_output
 
 echo "#==================================================================================
 #4. [ERROR END]
